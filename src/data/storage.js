@@ -1,136 +1,70 @@
-const STORAGE_KEY = 'sound-spirit-tasks';
+const SUPABASE_URL = 'https://hdxmswteiesvcwqdgpwm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkeG1zd3RlaWVzdmN3cWRncHdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI3NjE2MDAsImV4cCI6MjA1ODMzNzYwMH0.yFcCkOskWJ5wBjIxPCJN6vOI2r9L44jcJIPfAyEA76I';
 
-export function loadTasks() {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) return JSON.parse(stored);
-  return getDefaultTasks();
+const STATUS_MAP = {
+  'IDEE': 'offen',
+  'EVALUATING': 'offen',
+  'EVALUATED': 'offen',
+  'GEPLANT': 'offen',
+  'IN_ARBEIT': 'aktiv',
+  'PAUSIERT': 'offen',
+  'FERTIG': 'erledigt',
+  'VERWORFEN': 'erledigt',
+};
+
+const MOSCOW_MAP = {
+  'MUST': 'MUST',
+  'SHOULD': 'SHOULD',
+  'COULD': 'COULD',
+  'WONT': 'WONT',
+};
+
+export async function loadTasks() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/idea_scores?select=*&order=ice_score.desc`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Accept-Profile': 'planning',
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return data.map(row => ({
+      id: String(row.id),
+      titel: row.title,
+      prio: row.moscow_priority || 'COULD',
+      ice: row.ice_score,
+      status: STATUS_MAP[row.status] || 'offen',
+      dbStatus: row.status,
+      wer: row.created_by || '',
+      deadline: row.deadline || row.target_date || '',
+      details: row.description || '',
+      project: row.project || '',
+    }));
+  } catch (err) {
+    console.error('Supabase-Fehler:', err);
+    return [];
+  }
 }
 
-export function saveTasks(tasks) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-}
-
-function getDefaultTasks() {
-  return [
-    {
-      id: '1',
-      titel: 'Widerrufsbutton implementieren',
-      prio: 'MUST',
-      ice: 8.0,
-      status: 'offen',
-      wer: 'Michael + Ilona',
-      deadline: '2026-06-19',
-      details: 'Gesetzliche Pflicht ab 19.06.2026. Technische Umsetzung in Gambio, UX-Pruefung, Mobile, Dokumentation.',
-    },
-    {
-      id: '2',
-      titel: 'Showroom gegen CI/Standards pruefen',
-      prio: 'MUST',
-      ice: 7.0,
-      status: 'offen',
-      wer: 'Ilona',
-      deadline: '2026-05-20',
-      details: 'Farben, Wellen, Bloecke, Trust-Elemente, Mobile, Texte gegen Referenzseite pruefen.',
-    },
-    {
-      id: '3',
-      titel: 'Klangschalen-kaufen Performance fixen',
-      prio: 'MUST',
-      ice: 7.3,
-      status: 'offen',
-      wer: 'Michael',
-      deadline: '2026-05-31',
-      details: 'Score von 55 auf 70+. LCP 7.0s auf 2.5s. Mehrfach geladene Bilder, DOM-Groesse, Unused CSS 124KB.',
-    },
-    {
-      id: '4',
-      titel: 'Zentrales CSS dokumentieren',
-      prio: 'MUST',
-      ice: 7.3,
-      status: 'offen',
-      wer: 'Ilona + Claude',
-      deadline: '2026-05-31',
-      details: 'Wellen-System, Box-System, CTA-System, Button-System, Trust-System dokumentieren und durchsetzen.',
-    },
-    {
-      id: '5',
-      titel: 'API-Auslieferung Fehler beheben',
-      prio: 'MUST',
-      ice: 6.7,
-      status: 'offen',
-      wer: 'Michael',
-      deadline: '2026-05-31',
-      details: 'Gambio Hub SDK liefert Fehler aus. Schnittstelle pruefen.',
-    },
-    {
-      id: '6',
-      titel: 'Mehrfach geladene Bilder fixen',
-      prio: 'MUST',
-      ice: 7.3,
-      status: 'offen',
-      wer: 'Michael',
-      deadline: '2026-05-20',
-      details: 'Network Tab zeigt doppelt geladene Bilder. 0 Duplikate als Ziel.',
-    },
-    {
-      id: '7',
-      titel: 'Gambio API Credentials holen',
-      prio: 'MUST',
-      ice: 9.0,
-      status: 'offen',
-      wer: 'Frank',
-      deadline: '2026-05-12',
-      details: 'Blockiert Gstack seit 12 Tagen. Michael anrufen. 5 Minuten.',
-    },
-    {
-      id: '8',
-      titel: 'check-page.sh auf Cron setzen',
-      prio: 'MUST',
-      ice: 7.0,
-      status: 'offen',
-      wer: 'Claude',
-      deadline: '2026-05-14',
-      details: 'Erster automatischer Quality-Check. GitHub Actions oder lokaler Cron.',
-    },
-    {
-      id: '9',
-      titel: 'DOM-Groesse optimieren',
-      prio: 'SHOULD',
-      ice: 6.0,
-      status: 'offen',
-      wer: 'Michael',
-      deadline: '2026-06-30',
-      details: 'Unter 1500 DOM-Elemente. CSS-Only Responsive, SVG-Sprite, Inline-Styles auslagern.',
-    },
-    {
-      id: '10',
-      titel: 'Template-Typen definieren (5 Templates)',
-      prio: 'SHOULD',
-      ice: 5.7,
-      status: 'offen',
-      wer: 'Frank + Ilona',
-      deadline: '2026-06-30',
-      details: 'Tradition, Kaufen-Seite, Showroom, Ratgeber, Produktgruppe.',
-    },
-    {
-      id: '11',
-      titel: 'Doku-Inventur (alle versteckten Dokumente)',
-      prio: 'SHOULD',
-      ice: 5.3,
-      status: 'offen',
-      wer: 'Ilona',
-      deadline: '2026-05-31',
-      details: 'WordPress, Google Drive, Gmail, Chatbase, lokale Notizen - alles finden und klassifizieren.',
-    },
-    {
-      id: '12',
-      titel: 'mysqldump Passwort fixen',
-      prio: 'MUST',
-      ice: 8.0,
-      status: 'offen',
-      wer: 'Michael',
-      deadline: '2026-05-14',
-      details: 'DB-Backups laufen NICHT. Kritisch.',
-    },
-  ];
+export async function updateTaskStatus(id, newDbStatus) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/idea_scores?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Profile': 'planning',
+        'Accept-Profile': 'planning',
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({ status: newDbStatus }),
+    });
+    return res.ok;
+  } catch (err) {
+    console.error('Update-Fehler:', err);
+    return false;
+  }
 }
