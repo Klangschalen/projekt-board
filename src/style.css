@@ -230,6 +230,30 @@ body {
 .login-form button:hover { background: #34495e; }
 .login-form button:disabled { opacity: 0.6; cursor: not-allowed; }
 
+.google-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: white;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+.google-btn:hover { background: #f8f8f8; }
+
+.divider {
+  text-align: center;
+  margin: 0.8rem 0;
+  color: #999;
+  font-size: 0.8rem;
+}
+.divider span {
+  background: white;
+  padding: 0 0.5rem;
+}
+
 .login-error {
   background: #fce4e4;
   color: #c0392b;

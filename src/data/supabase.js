@@ -2,14 +2,14 @@ const SUPABASE_URL = 'https://hdxmswteiesvcwqdgpwm.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkeG1zd3RlaWVzdmN3cWRncHdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI3NjE2MDAsImV4cCI6MjA1ODMzNzYwMH0.yFcCkOskWJ5wBjIxPCJN6vOI2r9L44jcJIPfAyEA76I';
 
 let accessToken = null;
+let currentUser = null;
 
-export async function signIn(email, password) {
+// --- Auth ---
+
+export async function signInWithEmail(email, password) {
   const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
     method: 'POST',
-    headers: {
-      'apikey': SUPABASE_ANON_KEY,
-      'Content-Type': 'application/json',
-    },
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
   if (!res.ok) {
@@ -17,26 +17,69 @@ export async function signIn(email, password) {
     throw new Error(err.error_description || err.msg || 'Login fehlgeschlagen');
   }
   const data = await res.json();
-  accessToken = data.access_token;
-  localStorage.setItem('sb_token', accessToken);
-  localStorage.setItem('sb_user', JSON.stringify({ email: data.user.email }));
+  setSession(data.access_token, data.user);
   return data.user;
+}
+
+export function signInWithGoogle() {
+  const redirectTo = window.location.origin + window.location.pathname;
+  window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`;
+}
+
+export function handleOAuthCallback() {
+  const hash = window.location.hash;
+  if (!hash || !hash.includes('access_token')) return null;
+  const params = new URLSearchParams(hash.substring(1));
+  const token = params.get('access_token');
+  if (token) {
+    setSession(token, null);
+    window.history.replaceState(null, '', window.location.pathname);
+    return true;
+  }
+  return null;
+}
+
+export async function fetchUser() {
+  if (!accessToken) return null;
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${accessToken}` },
+  });
+  if (!res.ok) { signOut(); return null; }
+  const user = await res.json();
+  currentUser = { email: user.email, id: user.id };
+  localStorage.setItem('sb_user', JSON.stringify(currentUser));
+  return currentUser;
+}
+
+function setSession(token, user) {
+  accessToken = token;
+  localStorage.setItem('sb_token', token);
+  if (user) {
+    currentUser = { email: user.email, id: user.id };
+    localStorage.setItem('sb_user', JSON.stringify(currentUser));
+  }
 }
 
 export function restoreSession() {
   const token = localStorage.getItem('sb_token');
   if (token) {
     accessToken = token;
-    return JSON.parse(localStorage.getItem('sb_user') || '{}');
+    currentUser = JSON.parse(localStorage.getItem('sb_user') || 'null');
+    return currentUser;
   }
   return null;
 }
 
 export function signOut() {
   accessToken = null;
+  currentUser = null;
   localStorage.removeItem('sb_token');
   localStorage.removeItem('sb_user');
 }
+
+export function getUser() { return currentUser; }
+
+// --- Data ---
 
 function headers(write = false) {
   const h = {
@@ -50,10 +93,6 @@ function headers(write = false) {
     h['Prefer'] = 'return=minimal';
   }
   return h;
-}
-
-export function isLoggedIn() {
-  return !!accessToken;
 }
 
 const STATUS_MAP = {
