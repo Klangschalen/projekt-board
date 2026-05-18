@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System-Dashboard - Claude Code</title>
+<style>
+:root { --ok: #2a7a3a; --warn: #8a6020; --fail: #a03030; --bg: #faf8f4; --card: #fff; --border: #e0d8cc; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: #1a1a1a; padding: 20px; }
+h1 { font-family: 'EB Garamond', Georgia, serif; font-size: 28px; margin-bottom: 4px; }
+.subtitle { color: #888; font-size: 13px; margin-bottom: 24px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.card { background: var(--card); border-radius: 8px; padding: 20px; border: 1px solid var(--border); }
+.card h2 { font-family: 'EB Garamond', serif; font-size: 18px; margin-bottom: 12px; }
+.stat { text-align: center; }
+.stat-value { font-family: 'EB Garamond', serif; font-size: 42px; font-weight: 500; }
+.stat-label { font-size: 12px; color: #888; margin-top: 4px; }
+.ok { color: var(--ok); }
+.warn { color: var(--warn); }
+.fail { color: var(--fail); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+th { font-weight: 600; background: #f5f0e8; }
+.bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; width: 100px; }
+.fill { height: 100%; background: var(--ok); border-radius: 4px; }
+ul { list-style: none; }
+ul li { padding: 6px 0; font-size: 13px; border-bottom: 1px solid var(--border); }
+ul li:before { content: "! "; font-weight: bold; }
+.section { margin-bottom: 24px; }
+.section h2 { font-family: 'EB Garamond', serif; font-size: 22px; margin-bottom: 12px; }
+.help-box { background: #f5f0e8; border-radius: 8px; padding: 16px; margin-top: 12px; font-size: 13px; line-height: 1.6; }
+.help-box code { background: #e8e0d4; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+</style>
+</head>
+<body>
+<h1>System-Dashboard</h1>
+<p class="subtitle">Generiert: 13.05.2026 08:04 | Hooks: 30 | Plaene: 10 | Offene Aufgaben: 53</p>
+
+<div class="grid">
+  <div class="card stat">
+    <div class="stat-value ok">30/30</div>
+    <div class="stat-label">Hooks funktionieren</div>
+  </div>
+  <div class="card stat">
+    <div class="stat-value">93/223</div>
+    <div class="stat-label">Plan-Aufgaben erledigt</div>
+  </div>
+  <div class="card stat">
+    <div class="stat-value fail">Laeuft (19 Agenten)</div>
+    <div class="stat-label">ADK-Server (33 Agenten)</div>
+  </div>
+  <div class="card stat">
+    <div class="stat-value warn">8</div>
+    <div class="stat-label">Uncommitted Dateien</div>
+  </div>
+</div>
+
+<div class="section">
+<h2>Gaps und Warnungen</h2>
+<div class="card">
+<ul>
+<li class='fail'>ADK-Server nicht erreichbar - 33 Agenten nicht nutzbar</li><li class='warn'>8 uncommitted Dateien ueber alle Repos</li>
+
+</ul>
+</div>
+</div>
+
+<div class="section">
+<h2>Plan-Fortschritt</h2>
+<div class="card">
+<table>
+<thead><tr><th>Plan</th><th>Status</th><th>Aufgaben</th><th>%</th><th>Fortschritt</th></tr></thead>
+<tbody>
+<tr><td>goal-system-und-monitoring</td><td>OFFEN</td><td>0/27</td><td class='fail'>0%</td><td><div class='bar'><div class='fill' style='width:0%'></div></div></td></tr><tr><td>life-design-klang-programm</td><td></td><td>13/13</td><td class='ok'>100%</td><td><div class='bar'><div class='fill' style='width:100%'></div></div></td></tr><tr><td>planning-engine-extraktion</td><td>OFFEN</td><td>0/31</td><td class='fail'>0%</td><td><div class='bar'><div class='fill' style='width:0%'></div></div></td></tr><tr><td>routines-setup</td><td>ERLEDIGT (Phase 1+2 am 12.05.2026, 5/5 Routines aktiv)</td><td>0/9</td><td class='fail'>0%</td><td><div class='bar'><div class='fill' style='width:0%'></div></div></td></tr><tr><td>seo-audit-enforcement</td><td>GEMERGT nach sf-analyse-masterplan.md (12.05.2026)</td><td>10/33</td><td class='fail'>30%</td><td><div class='bar'><div class='fill' style='width:30%'></div></div></td></tr><tr><td>sf-analyse-masterplan</td><td>IN BEARBEITUNG</td><td>19/45</td><td class='fail'>42%</td><td><div class='bar'><div class='fill' style='width:42%'></div></div></td></tr><tr><td>shop-api-dom-optimierung</td><td>PHASE 4 - VOLLSTÄNDIGE BASELINE GEMESSEN</td><td>25/37</td><td class='warn'>67%</td><td><div class='bar'><div class='fill' style='width:67%'></div></div></td></tr><tr><td>system-selbstkenntnis</td><td>OFFEN</td><td>26/28</td><td class='warn'>92%</td><td><div class='bar'><div class='fill' style='width:92%'></div></div></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="section">
+<h2>Hooks (30 OK, 0 Fehler)</h2>
+<div class="card">
+<table>
+<thead><tr><th>Hook</th><th>Status</th><th>Details</th></tr></thead>
+<tbody>
+<tr><td>auto-push</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>cross-repo-active-probe</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>detect-project</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>enforce-current-year</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>fix-encoding</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>frank-reminder</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>gmail-umlaut-check</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>hwg-check</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>learnings-capture</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>neue-idee-gate</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>no-fake-completeness</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>no-questions-in-output</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>original-first-check</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>persona-check</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>plan-governance-check</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>plan-progress-tracker</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>post-compact-reinject</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>protect-main-branch</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>quality-check</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>read-scan-errors</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>security-install-check</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>session-end-summary</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>session-preload</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>stale-data-guard</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>step0-verstehen</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>topic-tracker</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>uncommitted-check</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>verify-before-done</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>verify-before-plan</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr><tr><td>zwang-enforcer</td><td class='ok'>OK</td><td>Syntax korrekt</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="section">
+<h2>Repositories</h2>
+<div class="card">
+<table>
+<thead><tr><th>Repo</th><th>Dirty</th><th>Unpushed</th><th>Letzter Commit</th></tr></thead>
+<tbody>
+<tr><td>.claude</td><td class='warn'>6</td><td>2</td><td>14 minutes ago</td></tr><tr><td>security-scanner-laravel</td><td class='warn'>1</td><td>0</td><td>2 days ago</td></tr><tr><td>life-design-app</td><td class='ok'>0</td><td>0</td><td>11 hours ago</td></tr><tr><td>sf-analyse</td><td class='ok'>0</td><td>0</td><td>11 hours ago</td></tr><tr><td>content-engine</td><td class='ok'>0</td><td>0</td><td></td></tr><tr><td>zentrale</td><td class='warn'>1</td><td>0</td><td>2 days ago</td></tr><tr><td>quality-system</td><td class='ok'>0</td><td>0</td><td>2 days ago</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="section">
+<h2>Wie verwende ich das System?</h2>
+<div class="help-box">
+<strong>Die 5 wichtigsten Befehle:</strong><br>
+<code>/go</code> - Erkennt automatisch was zu tun ist und macht es<br>
+<code>/status</code> - Zeigt alle Projekte auf einen Blick<br>
+<code>/check</code> - Prueft automatisch ob alles in Ordnung ist<br>
+<code>/help-me</code> - Erklaert welcher Befehl fuer welche Aufgabe<br>
+<code>/abend</code> - Tagesabschluss mit Zusammenfassung<br>
+<br>
+<strong>Hooks laufen automatisch:</strong><br>
+- <strong>persona-check</strong>: Prueft bei Code-Aenderungen ob Boris/Erik/Gary zufrieden waeren<br>
+- <strong>plan-progress-tracker</strong>: Zaehlt Checkboxen in Plaenen, markiert fertige als ERLEDIGT<br>
+- <strong>verify-before-done</strong>: Blockiert wenn Commits ohne Messung existieren (Booking.com-Standard)<br>
+- <strong>plan-governance-check</strong>: Blockiert wenn viele Commits ohne Plan existieren<br>
+- <strong>session-preload</strong>: Laedt Kontext beim Session-Start (Repos, Plaene, Aufgaben)<br>
+<br>
+<strong>Du musst nichts davon manuell aufrufen.</strong> Die Hooks feuern automatisch zur richtigen Zeit.
+</div>
+</div>
+
+</body>
+</html>
