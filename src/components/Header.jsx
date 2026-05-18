@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Header({ personen, projekte, filter, onFilter, taskCount, user, onLogout, onLogin }) {
+export default function Header({ personen, projekte, filter, onFilter, taskCount }) {
   return (
     <header className="header">
       <div className="header-left">
@@ -18,14 +18,6 @@ export default function Header({ personen, projekte, filter, onFilter, taskCount
               {projekte.map(p => <option key={p} value={p}>{p}</option>)}
             </optgroup>
           </select>
-        )}
-        {user ? (
-          <span className="user-info">
-            {user.email}
-            <button className="logout-btn" onClick={onLogout}>Abmelden</button>
-          </span>
-        ) : (
-          <button className="login-btn" onClick={onLogin}>Anmelden (fuer Schreibzugriff)</button>
         )}
       </div>
     </header>
