@@ -79,9 +79,9 @@ export function signOut() {
 
 export function getUser() { return currentUser; }
 
-// --- Data ---
+// --- Headers ---
 
-function headers(write = false) {
+function headersPlanning(write = false) {
   const h = {
     'apikey': SUPABASE_ANON_KEY,
     'Authorization': `Bearer ${accessToken}`,
@@ -95,16 +95,57 @@ function headers(write = false) {
   return h;
 }
 
+function headersPublic(write = false) {
+  const h = {
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': `Bearer ${accessToken}`,
+  };
+  if (write) {
+    h['Content-Type'] = 'application/json';
+    h['Prefer'] = 'return=minimal';
+  }
+  return h;
+}
+
+// --- Status / Phase Maps ---
+
 const STATUS_MAP = {
   'IDEE': 'offen', 'EVALUATING': 'offen', 'EVALUATED': 'offen',
   'GEPLANT': 'offen', 'IN_ARBEIT': 'aktiv', 'PAUSIERT': 'offen',
   'FERTIG': 'erledigt', 'VERWORFEN': 'erledigt',
 };
 
+// Garry-Tan-Phasen (gstack)
+export const PHASES = ['THINK', 'PLAN', 'BUILD', 'REVIEW', 'TEST', 'SHIP'];
+
+// Fallback-Mapping wenn task.phase fehlt (vor DB-Patch supabase_add_phase_column.sql)
+const PHASE_FROM_DBSTATUS = {
+  'IDEE': 'THINK',
+  'EVALUATING': 'THINK',
+  'EVALUATED': 'PLAN',
+  'GEPLANT': 'PLAN',
+  'IN_ARBEIT': 'BUILD',
+  'PAUSIERT': 'BUILD',
+  'FERTIG': 'SHIP',
+  'VERWORFEN': null, // wird in PhaseBoard nicht angezeigt
+};
+
+/**
+ * Ermittelt die Phase eines Tasks fuer das PhaseBoard.
+ * - Wenn DB-Phase gesetzt (nach SQL-Patch): nimm die.
+ * - Sonst: Fallback aus dbStatus.
+ */
+export function phaseFromTask(task) {
+  if (task.phase && PHASES.includes(task.phase)) return task.phase;
+  return PHASE_FROM_DBSTATUS[task.dbStatus] || null;
+}
+
+// --- Data ---
+
 export async function loadTasks() {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/idea_scores?select=*&order=ice_score.desc`,
-    { headers: headers() }
+    { headers: headersPlanning() }
   );
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
@@ -115,6 +156,8 @@ export async function loadTasks() {
     ice: row.ice_score,
     status: STATUS_MAP[row.status] || 'offen',
     dbStatus: row.status,
+    phase: row.phase || null,        // neu - aus DB-Patch
+    goalId: row.goal_id || null,     // schon im Schema
     wer: row.created_by || '',
     deadline: row.deadline || row.target_date || '',
     details: row.description || '',
@@ -125,7 +168,33 @@ export async function loadTasks() {
 export async function updateTaskStatus(id, newDbStatus) {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/idea_scores?id=eq.${id}`,
-    { method: 'PATCH', headers: headers(true), body: JSON.stringify({ status: newDbStatus }) }
+    { method: 'PATCH', headers: headersPlanning(true), body: JSON.stringify({ status: newDbStatus }) }
   );
   return res.ok;
+}
+
+/**
+ * Laedt offene Goals aus public.goals (anderes Schema als Tasks).
+ * Liefert array of { id, title, status, priority, target_date } - leer
+ * bei Fehler (graceful, das Board funktioniert auch ohne Goals).
+ */
+export async function loadGoals() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/goals?select=id,title,status,priority,target_date&order=priority.desc.nullslast,target_date.asc.nullslast`,
+      { headers: headersPublic() }
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.map(g => ({
+      id: String(g.id),
+      title: g.title,
+      status: g.status,
+      priority: g.priority,
+      targetDate: g.target_date,
+    }));
+  } catch (err) {
+    console.warn('loadGoals fehlgeschlagen:', err);
+    return [];
+  }
 }
