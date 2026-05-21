@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { signInWithEmail } from '../data/supabase.js';
 
-export default function Login({ onEmailLogin, onGoogleLogin, googleEnabled }) {
+export default function Login({ onLogin, onClose }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -11,42 +12,67 @@ export default function Login({ onEmailLogin, onGoogleLogin, googleEnabled }) {
     setError('');
     setLoading(true);
     try {
-      await onEmailLogin(email, password);
+      const session = await signInWithEmail(email, password);
+      onLogin(session);
     } catch (err) {
       setError(err.message);
     }
     setLoading(false);
   }
 
+  function handleOverlayClick(e) {
+    if (e.target === e.currentTarget) onClose();
+  }
+
   return (
-    <div className="login-container">
-      <form className="login-form" onSubmit={handleSubmit}>
-        <h1>Sound-Spirit Projekt-Board</h1>
-        <p>Internes Team-Board - nur fuer autorisierte Mitarbeiter</p>
+    <div className="login-overlay" onClick={handleOverlayClick}>
+      <div className="login-modal">
+        <button className="login-close-btn" onClick={onClose}>×</button>
+
+        <div className="login-logo">
+          <span className="login-logo-icon">🎵</span>
+          <h1>Sound-Spirit</h1>
+        </div>
+
+        <p className="login-subtitle">Team-Plattform — Nur für autorisierte Mitarbeiter</p>
 
         {error && <div className="login-error">{error}</div>}
 
-        {googleEnabled && (
-          <>
-            <button type="button" className="google-btn" onClick={onGoogleLogin}>
-              Mit Google anmelden
-            </button>
-            <div className="divider"><span>oder</span></div>
-          </>
-        )}
+        <form className="login-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="email">E-Mail</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="name@sound-spirit.de"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              autoFocus
+            />
+          </div>
 
-        <input
-          type="email" placeholder="E-Mail" value={email}
-          onChange={e => setEmail(e.target.value)} required autoFocus
-        />
-        <input
-          type="password" placeholder="Passwort" value={password}
-          onChange={e => setPassword(e.target.value)} required
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? 'Wird geladen...' : 'Anmelden'}
-        </button>
-      </form>
+          <div className="form-group">
+            <label htmlFor="password">Passwort</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="Passwort eingeben"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button type="submit" className="btn-primary login-submit" disabled={loading}>
+            {loading ? 'Anmeldung läuft...' : 'Anmelden'}
+          </button>
+        </form>
+
+        <p className="login-hint">
+          Noch kein Konto? Bitte Frank kontaktieren für einen Zugang.
+        </p>
+      </div>
     </div>
   );
 }
