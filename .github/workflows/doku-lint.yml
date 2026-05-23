@@ -1,0 +1,14 @@
+name: Doku-Lint
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint:
+    uses: Klangschalen/.github/.github/workflows/doku-lint.yml@main
+    with:
+      pflicht_dateien: "README.md,LICENSE,CHANGELOG.md,STATUS.md,CONTRIBUTING.md,SECURITY.md,.editorconfig,.gitignore"
+      warn_only: true
