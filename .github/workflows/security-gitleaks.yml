@@ -1,0 +1,21 @@
+name: Security - gitleaks
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+  schedule:
+    - cron: "17 4 * * *"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gitleaks:
+    name: gitleaks-scan
+    uses: Klangschalen/.github/.github/workflows/gitleaks-scan.yml@main
+    secrets: inherit
+    with:
+      fail-on-detection: false
