@@ -15,7 +15,7 @@ permissions:
 jobs:
   gitleaks:
     name: gitleaks-scan
-    uses: Klangschalen/.github/.github/workflows/gitleaks-scan.yml@main
+    uses: Klangschalen/.github/.github/workflows/gitleaks-scan.yml@08d7248c775833c82067052c420811e3b23ebbec
     secrets: inherit
     with:
       fail-on-detection: false
