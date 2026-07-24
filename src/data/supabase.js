@@ -23,7 +23,7 @@ const STATUS_MAP = {
 
 export async function loadTasks() {
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/idea_scores?select=*&order=ice_score.desc`,
+    `${SUPABASE_URL}/rest/v1/idea_scores?select=*&order=revenue_score.desc,ice_score.desc`,
     { headers: headers() }
   );
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -33,6 +33,10 @@ export async function loadTasks() {
     titel: row.title,
     prio: row.moscow_priority || 'COULD',
     ice: row.ice_score,
+    revenueCategory: row.revenue_category,
+    revenueScore: row.revenue_score,
+    estimatedRevenueImpact: row.estimated_revenue_impact,
+    roas: row.roas,
     status: STATUS_MAP[row.status] || 'offen',
     dbStatus: row.status,
     wer: row.created_by || '',

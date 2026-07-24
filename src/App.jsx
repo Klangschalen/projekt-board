@@ -71,7 +71,11 @@ export default function App() {
 
   if (loading) return <div className="app"><p>Lade...</p></div>;
 
-  const filtered = filter === 'alle' ? tasks : tasks.filter(t => t.wer === filter || t.project === filter);
+  const filtered = filter === 'alle'
+    ? tasks
+    : filter === 'money-maker'
+      ? tasks.filter(t => t.revenueCategory === 'DIRECT_REVENUE' || t.revenueCategory === 'INDIRECT_REVENUE')
+      : tasks.filter(t => t.wer === filter || t.project === filter);
   const personen = [...new Set(tasks.map(t => t.wer).filter(Boolean))];
   const projekte = [...new Set(tasks.map(t => t.project).filter(Boolean))];
 

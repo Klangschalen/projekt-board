@@ -147,6 +147,14 @@ body {
   border-radius: 3px;
 }
 
+.revenue-badge {
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+}
+
 .task-title {
   font-size: 0.85rem;
   font-weight: 600;

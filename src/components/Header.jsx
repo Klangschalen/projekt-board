@@ -11,6 +11,7 @@ export default function Header({ personen, projekte, filter, onFilter, taskCount
         {personen.length > 0 && (
           <select value={filter} onChange={e => onFilter(e.target.value)}>
             <option value="alle">Alle</option>
+            <option value="money-maker">Nur Money-Maker (Umsatz-relevant)</option>
             <optgroup label="Person">
               {personen.map(p => <option key={p} value={p}>{p}</option>)}
             </optgroup>
