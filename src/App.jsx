@@ -4,13 +4,15 @@ import Header from './components/Header.jsx';
 import NaechsteSession from './components/NaechsteSession.jsx';
 import PlanOverview from './components/PlanOverview.jsx';
 import DeepResearch from './components/DeepResearch.jsx';
-import { loadTasks, updateTaskStatus } from './data/supabase.js';
+import Portfolio from './components/Portfolio.jsx';
+import { loadTasks, loadPortfolio, updateTaskStatus } from './data/supabase.js';
 
 const DB_STATUS = { offen: 'IDEE', aktiv: 'IN_ARBEIT', erledigt: 'FERTIG' };
 
 const TABS = [
   { id: 'session', label: 'Naechste Session' },
   { id: 'board', label: 'Board' },
+  { id: 'moneymaker', label: 'Money-Maker' },
   { id: 'plans', label: 'Plaene' },
   { id: 'research', label: 'Deep Research' },
 ];
@@ -25,11 +27,12 @@ export default function App() {
   const [sessionData, setSessionData] = useState(null);
   const [plansData, setPlansData] = useState([]);
   const [ausgabenData, setAusgabenData] = useState([]);
+  const [portfolioData, setPortfolioData] = useState([]);
 
   useEffect(() => {
     async function init() {
       loadLocalData();
-      await fetchTasksFromSupabase();
+      await Promise.all([fetchTasksFromSupabase(), fetchPortfolioFromSupabase()]);
       setLoading(false);
     }
     init();
@@ -58,6 +61,14 @@ export default function App() {
     } catch (err) {
       console.warn('Supabase nicht erreichbar:', err.message);
       setSupabaseOk(false);
+    }
+  }
+
+  async function fetchPortfolioFromSupabase() {
+    try {
+      setPortfolioData(await loadPortfolio());
+    } catch (err) {
+      console.warn('Portfolio nicht ladbar:', err.message);
     }
   }
 
@@ -103,6 +114,7 @@ export default function App() {
       <div className="tab-content">
         {tab === 'session' && <NaechsteSession data={sessionData} />}
         {tab === 'board' && <Board tasks={filtered} onMove={moveTask} />}
+        {tab === 'moneymaker' && <Portfolio portfolio={portfolioData} />}
         {tab === 'plans' && <PlanOverview plans={plansData} />}
         {tab === 'research' && <DeepResearch ausgaben={ausgabenData} />}
       </div>

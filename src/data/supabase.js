@@ -42,6 +42,29 @@ export async function loadTasks() {
   }));
 }
 
+export async function loadPortfolio() {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/project_portfolio?select=*`,
+    { headers: headers() }
+  );
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  return data.map(row => ({
+    project: row.project,
+    entries: row.entries,
+    avgIce: row.avg_ice,
+    maxIce: row.max_ice,
+    directRevenueCount: row.direct_revenue_count,
+    indirectRevenueCount: row.indirect_revenue_count,
+    noRevenueCount: row.no_revenue_count,
+    classifiedPct: row.classified_pct,
+    sumEstimatedRevenueEur: row.sum_estimated_revenue_eur,
+    revenueEstimatesCount: row.revenue_estimates_count,
+    mustCount: row.must_count,
+    openCount: row.open_count,
+  }));
+}
+
 export async function updateTaskStatus(id, newDbStatus) {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/idea_scores?id=eq.${id}`,
