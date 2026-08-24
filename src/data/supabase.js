@@ -116,7 +116,7 @@ const STATUS_MAP = {
 
 export async function loadTasks(token) {
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/idea_scores?select=*&order=ice_score.desc`,
+    `${SUPABASE_URL}/rest/v1/idea_scores?select=*&order=revenue_score.desc,ice_score.desc`,
     { headers: authHeaders(token) }
   );
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -126,6 +126,10 @@ export async function loadTasks(token) {
     titel: row.title,
     prio: row.moscow_priority || 'COULD',
     ice: row.ice_score,
+    revenueCategory: row.revenue_category,
+    revenueScore: row.revenue_score,
+    estimatedRevenueImpact: row.estimated_revenue_impact,
+    roas: row.roas,
     status: STATUS_MAP[row.status] || 'offen',
     dbStatus: row.status,
     wer: row.created_by || '',
@@ -136,6 +140,32 @@ export async function loadTasks(token) {
     projectId: row.project_id || null,
     teamId: row.team_id || null,
     canvasPosition: row.canvas_position || { x: 0, y: 0 },
+  }));
+}
+
+// Portfolio-Sicht je Projekt (planning.project_portfolio, aggregiert idea_scores):
+// macht sichtbar, welche Projekte wirklich Money-Maker sind (direkter Umsatzbezug,
+// geschaetzter Umsatz) und wie sie ICE-maessig gestaffelt sind.
+export async function loadPortfolio(token) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/project_portfolio?select=*`,
+    { headers: authHeaders(token) }
+  );
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  return data.map(row => ({
+    project: row.project,
+    entries: row.entries,
+    avgIce: row.avg_ice,
+    maxIce: row.max_ice,
+    directRevenueCount: row.direct_revenue_count,
+    indirectRevenueCount: row.indirect_revenue_count,
+    noRevenueCount: row.no_revenue_count,
+    classifiedPct: row.classified_pct,
+    sumEstimatedRevenueEur: row.sum_estimated_revenue_eur,
+    revenueEstimatesCount: row.revenue_estimates_count,
+    mustCount: row.must_count,
+    openCount: row.open_count,
   }));
 }
 

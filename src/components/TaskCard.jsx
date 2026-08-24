@@ -7,6 +7,16 @@ const PRIO_COLORS = {
   WONT: '#95a5a6',
 };
 
+const REVENUE_LABELS = {
+  DIRECT_REVENUE: 'DIREKT',
+  INDIRECT_REVENUE: 'INDIREKT',
+};
+
+const REVENUE_COLORS = {
+  DIRECT_REVENUE: '#1e8449',
+  INDIRECT_REVENUE: '#16a085',
+};
+
 export default function TaskCard({ task }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -23,6 +33,12 @@ export default function TaskCard({ task }) {
           {task.prio || '?'}
         </span>
         {task.ice != null && <span className="ice-badge">ICE {task.ice}</span>}
+        {REVENUE_LABELS[task.revenueCategory] && (
+          <span className="revenue-badge" style={{ backgroundColor: REVENUE_COLORS[task.revenueCategory] }}>
+            {REVENUE_LABELS[task.revenueCategory]}
+            {task.estimatedRevenueImpact != null && ` ~${task.estimatedRevenueImpact} EUR`}
+          </span>
+        )}
         {task.project && <span className="project-badge">{task.project}</span>}
       </div>
       <h3 className="task-title">{task.titel}</h3>
