@@ -30,6 +30,7 @@ export default function Header({
         {personen.length > 0 && (
           <select value={filter} onChange={e => onFilter(e.target.value)} className="header-filter">
             <option value="alle">Alle anzeigen</option>
+            <option value="money-maker">Nur Money-Maker (Umsatz-relevant)</option>
             <optgroup label="Person">
               {personen.map(p => <option key={p} value={p}>{p}</option>)}
             </optgroup>

@@ -8,8 +8,9 @@ import CanvasBoard from './components/CanvasBoard.jsx';
 import TaskDetail from './components/TaskDetail.jsx';
 import TeamView from './components/TeamView.jsx';
 import Login from './components/Login.jsx';
+import Portfolio from './components/Portfolio.jsx';
 import {
-  loadTasks, updateTaskStatus,
+  loadTasks, loadPortfolio, updateTaskStatus,
   getStoredSession, storeSession, signOut,
   loadUserProfile,
 } from './data/supabase.js';
@@ -20,6 +21,7 @@ const TABS = [
   { id: 'session', label: 'Nächste Session', requiresAuth: false },
   { id: 'canvas', label: 'Canvas-Board', requiresAuth: false },
   { id: 'board', label: 'Kanban', requiresAuth: false },
+  { id: 'moneymaker', label: 'Money-Maker', requiresAuth: false },
   { id: 'plans', label: 'Pläne', requiresAuth: false },
   { id: 'team', label: 'Team', requiresAuth: true },
   { id: 'research', label: 'Deep Research', requiresAuth: false },
@@ -45,6 +47,7 @@ export default function App() {
   const [sessionData, setSessionData] = useState(null);
   const [plansData, setPlansData] = useState([]);
   const [ausgabenData, setAusgabenData] = useState([]);
+  const [portfolioData, setPortfolioData] = useState([]);
 
   // Beim Start: Session aus localStorage laden
   useEffect(() => {
@@ -57,6 +60,7 @@ export default function App() {
     }
     loadLocalData();
     fetchTasksFromSupabase(stored?.access_token);
+    fetchPortfolioFromSupabase(stored?.access_token);
   }, []);
 
   async function loadLocalData() {
@@ -87,6 +91,14 @@ export default function App() {
     }
   }
 
+  async function fetchPortfolioFromSupabase(token) {
+    try {
+      setPortfolioData(await loadPortfolio(token));
+    } catch (err) {
+      console.warn('Portfolio nicht ladbar:', err.message);
+    }
+  }
+
   async function handleLogin(newSession) {
     storeSession(newSession);
     setSession(newSession);
@@ -95,6 +107,7 @@ export default function App() {
     if (profile) setUserProfile(profile);
     // Aufgaben mit Auth-Token neu laden (für vollständigen Zugriff)
     await fetchTasksFromSupabase(newSession.access_token);
+    await fetchPortfolioFromSupabase(newSession.access_token);
   }
 
   async function handleLogout() {
@@ -106,6 +119,7 @@ export default function App() {
     setUserProfile(null);
     // Wieder anonym laden
     await fetchTasksFromSupabase(null);
+    await fetchPortfolioFromSupabase(null);
   }
 
   async function moveTask(id, newStatus) {
@@ -138,7 +152,11 @@ export default function App() {
     </div>
   );
 
-  const filtered = filter === 'alle' ? tasks : tasks.filter(t => t.wer === filter || t.project === filter);
+  const filtered = filter === 'alle'
+    ? tasks
+    : filter === 'money-maker'
+      ? tasks.filter(t => t.revenueCategory === 'DIRECT_REVENUE' || t.revenueCategory === 'INDIRECT_REVENUE')
+      : tasks.filter(t => t.wer === filter || t.project === filter);
   const personen = [...new Set(tasks.map(t => t.wer).filter(Boolean))];
   const projekte = [...new Set(tasks.map(t => t.project).filter(Boolean))];
 
@@ -195,7 +213,7 @@ export default function App() {
       </nav>
 
       {/* Supabase-Warnung */}
-      {supabaseOk === false && (tab === 'board' || tab === 'canvas') && (
+      {supabaseOk === false && (tab === 'board' || tab === 'canvas' || tab === 'moneymaker') && (
         <div className="notice notice-warn">
           Supabase-Verbindung fehlgeschlagen — Board zeigt keine Daten.
         </div>
@@ -210,6 +228,7 @@ export default function App() {
         {tab === 'board' && (
           <Board tasks={filtered} onMove={moveTask} onTaskClick={handleTaskClick} />
         )}
+        {tab === 'moneymaker' && <Portfolio portfolio={portfolioData} />}
         {tab === 'plans' && <PlanOverview plans={plansData} />}
         {tab === 'team' && (
           <TeamView session={session} userProfile={userProfile} />
