@@ -193,6 +193,25 @@ export async function updateTaskAssignee(id, assigneeId, token) {
   return res.ok;
 }
 
+// Setzt Umsatz-Klassifizierung + optionale EUR-Schaetzung. revenue_score wird von
+// planning.idea_scores_auto_fields() serverseitig aus ice_score + Kategorie neu berechnet,
+// deshalb hier nicht mitschicken.
+export async function updateTaskRevenue(id, revenueCategory, estimatedRevenueImpact, token) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/idea_scores?id=eq.${id}`,
+    {
+      method: 'PATCH',
+      headers: authHeaders(token, true),
+      body: JSON.stringify({
+        revenue_category: revenueCategory,
+        estimated_revenue_impact: estimatedRevenueImpact,
+        updated_at: new Date().toISOString(),
+      }),
+    }
+  );
+  return res.ok;
+}
+
 // ============================================================
 // KOMMENTARE
 // ============================================================

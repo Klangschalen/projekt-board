@@ -134,6 +134,13 @@ export default function App() {
     setSelectedTask(task);
   }
 
+  function handleRevenueChange(id, revenueCategory, estimatedRevenueImpact) {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, revenueCategory, estimatedRevenueImpact } : t));
+    setSelectedTask(prev => prev && prev.id === id ? { ...prev, revenueCategory, estimatedRevenueImpact } : prev);
+    // Portfolio-Tab (Projekt-Aggregation) neu laden, damit Aenderung dort sofort sichtbar ist
+    fetchPortfolioFromSupabase(session?.access_token);
+  }
+
   function handleTabChange(tabId) {
     const tabConfig = TABS.find(t => t.id === tabId);
     if (tabConfig?.requiresAuth && !session) {
@@ -181,6 +188,7 @@ export default function App() {
             moveTask(id, newStatus);
             setSelectedTask(prev => prev ? { ...prev, status: newStatus } : null);
           }}
+          onRevenueChange={handleRevenueChange}
         />
       )}
 

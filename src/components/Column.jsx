@@ -1,7 +1,7 @@
 import React from 'react';
 import TaskCard from './TaskCard.jsx';
 
-export default function Column({ column, tasks, onMove }) {
+export default function Column({ column, tasks, onMove, onTaskClick }) {
   function handleDrop(e) {
     e.preventDefault();
     const id = e.dataTransfer.getData('text/plain');
@@ -17,7 +17,7 @@ export default function Column({ column, tasks, onMove }) {
         <span className="column-count">{tasks.length}</span>
       </div>
       <div className="column-tasks">
-        {sorted.map(task => <TaskCard key={task.id} task={task} />)}
+        {sorted.map(task => <TaskCard key={task.id} task={task} onClick={onTaskClick ? () => onTaskClick(task) : undefined} />)}
       </div>
     </div>
   );
