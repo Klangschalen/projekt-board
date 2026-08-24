@@ -5,37 +5,62 @@ import NaechsteSession from './components/NaechsteSession.jsx';
 import PlanOverview from './components/PlanOverview.jsx';
 import DeepResearch from './components/DeepResearch.jsx';
 import Portfolio from './components/Portfolio.jsx';
-import { loadTasks, loadPortfolio, updateTaskStatus } from './data/supabase.js';
+import CanvasBoard from './components/CanvasBoard.jsx';
+import TaskDetail from './components/TaskDetail.jsx';
+import TeamView from './components/TeamView.jsx';
+import Login from './components/Login.jsx';
+import {
+  loadTasks, loadPortfolio, updateTaskStatus,
+  getStoredSession, storeSession, signOut,
+  loadUserProfile,
+} from './data/supabase.js';
 
 const DB_STATUS = { offen: 'IDEE', aktiv: 'IN_ARBEIT', erledigt: 'FERTIG' };
 
 const TABS = [
-  { id: 'session', label: 'Naechste Session' },
-  { id: 'board', label: 'Board' },
-  { id: 'moneymaker', label: 'Money-Maker' },
-  { id: 'plans', label: 'Plaene' },
-  { id: 'research', label: 'Deep Research' },
+  { id: 'session', label: 'Nächste Session', requiresAuth: false },
+  { id: 'canvas', label: 'Canvas-Board', requiresAuth: false },
+  { id: 'board', label: 'Kanban', requiresAuth: false },
+  { id: 'moneymaker', label: 'Money-Maker', requiresAuth: false },
+  { id: 'plans', label: 'Pläne', requiresAuth: false },
+  { id: 'team', label: 'Team', requiresAuth: true },
+  { id: 'research', label: 'Deep Research', requiresAuth: false },
 ];
 
 export default function App() {
+  // Auth State
+  const [session, setSession] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [showLogin, setShowLogin] = useState(false);
+
+  // Tasks State
   const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState('alle');
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('session');
   const [supabaseOk, setSupabaseOk] = useState(null);
 
+  // UI State
+  const [tab, setTab] = useState('session');
+  const [selectedTask, setSelectedTask] = useState(null);
+
+  // Lokale Daten
   const [sessionData, setSessionData] = useState(null);
   const [plansData, setPlansData] = useState([]);
   const [ausgabenData, setAusgabenData] = useState([]);
   const [portfolioData, setPortfolioData] = useState([]);
 
+  // Beim Start: Session aus localStorage laden
   useEffect(() => {
-    async function init() {
-      loadLocalData();
-      await Promise.all([fetchTasksFromSupabase(), fetchPortfolioFromSupabase()]);
-      setLoading(false);
+    const stored = getStoredSession();
+    if (stored) {
+      setSession(stored);
+      loadUserProfile(stored.user?.id, stored.access_token).then(profile => {
+        if (profile) setUserProfile(profile);
+      });
     }
-    init();
+    loadLocalData();
+    fetchTasksFromSupabase(stored?.access_token);
+    fetchPortfolioFromSupabase(stored?.access_token);
   }, []);
 
   async function loadLocalData() {
@@ -53,34 +78,79 @@ export default function App() {
     }
   }
 
-  async function fetchTasksFromSupabase() {
+  async function fetchTasksFromSupabase(token) {
     try {
-      const loaded = await loadTasks();
+      const loaded = await loadTasks(token);
       setTasks(loaded);
       setSupabaseOk(true);
     } catch (err) {
       console.warn('Supabase nicht erreichbar:', err.message);
       setSupabaseOk(false);
+    } finally {
+      setLoading(false);
     }
   }
 
-  async function fetchPortfolioFromSupabase() {
+  async function fetchPortfolioFromSupabase(token) {
     try {
-      setPortfolioData(await loadPortfolio());
+      setPortfolioData(await loadPortfolio(token));
     } catch (err) {
       console.warn('Portfolio nicht ladbar:', err.message);
     }
   }
 
+  async function handleLogin(newSession) {
+    storeSession(newSession);
+    setSession(newSession);
+    setShowLogin(false);
+    const profile = await loadUserProfile(newSession.user?.id, newSession.access_token);
+    if (profile) setUserProfile(profile);
+    // Aufgaben mit Auth-Token neu laden (für vollständigen Zugriff)
+    await fetchTasksFromSupabase(newSession.access_token);
+    await fetchPortfolioFromSupabase(newSession.access_token);
+  }
+
+  async function handleLogout() {
+    if (session?.access_token) {
+      await signOut(session.access_token);
+    }
+    storeSession(null);
+    setSession(null);
+    setUserProfile(null);
+    // Wieder anonym laden
+    await fetchTasksFromSupabase(null);
+    await fetchPortfolioFromSupabase(null);
+  }
+
   async function moveTask(id, newStatus) {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
-    const ok = await updateTaskStatus(id, DB_STATUS[newStatus] || 'IDEE');
+    const ok = await updateTaskStatus(id, DB_STATUS[newStatus] || 'IDEE', session?.access_token);
     if (!ok) {
-      await fetchTasksFromSupabase();
+      await fetchTasksFromSupabase(session?.access_token);
     }
   }
 
-  if (loading) return <div className="app"><p>Lade...</p></div>;
+  function handleTaskClick(task) {
+    setSelectedTask(task);
+  }
+
+  function handleTabChange(tabId) {
+    const tabConfig = TABS.find(t => t.id === tabId);
+    if (tabConfig?.requiresAuth && !session) {
+      setShowLogin(true);
+      return;
+    }
+    setTab(tabId);
+  }
+
+  if (loading) return (
+    <div className="app">
+      <div className="loading-screen">
+        <div className="loading-spinner" />
+        <p>Lade Daten...</p>
+      </div>
+    </div>
+  );
 
   const filtered = filter === 'alle' ? tasks : tasks.filter(t => t.wer === filter || t.project === filter);
   const personen = [...new Set(tasks.map(t => t.wer).filter(Boolean))];
@@ -88,34 +158,77 @@ export default function App() {
 
   return (
     <div className="app">
+      {/* Login-Modal */}
+      {showLogin && (
+        <Login
+          onLogin={handleLogin}
+          onClose={() => setShowLogin(false)}
+        />
+      )}
+
+      {/* Task-Detail-Modal */}
+      {selectedTask && (
+        <TaskDetail
+          task={selectedTask}
+          session={session}
+          userProfile={userProfile}
+          onClose={() => setSelectedTask(null)}
+          onStatusChange={(id, newStatus) => {
+            moveTask(id, newStatus);
+            setSelectedTask(prev => prev ? { ...prev, status: newStatus } : null);
+          }}
+        />
+      )}
+
+      {/* Header mit Auth-Status */}
       <Header
-        personen={personen} projekte={projekte} filter={filter}
-        onFilter={setFilter} taskCount={tasks.length}
+        personen={personen}
+        projekte={projekte}
+        filter={filter}
+        onFilter={setFilter}
+        taskCount={tasks.length}
+        session={session}
+        userProfile={userProfile}
+        onLogin={() => setShowLogin(true)}
+        onLogout={handleLogout}
       />
 
+      {/* Navigation */}
       <nav className="tab-nav">
         {TABS.map(t => (
           <button
             key={t.id}
-            className={`tab-btn ${tab === t.id ? 'tab-active' : ''}`}
-            onClick={() => setTab(t.id)}
+            className={`tab-btn ${tab === t.id ? 'tab-active' : ''} ${t.requiresAuth && !session ? 'tab-locked' : ''}`}
+            onClick={() => handleTabChange(t.id)}
+            title={t.requiresAuth && !session ? 'Anmeldung erforderlich' : ''}
           >
             {t.label}
+            {t.requiresAuth && !session && <span className="lock-icon"> 🔒</span>}
           </button>
         ))}
       </nav>
 
-      {supabaseOk === false && tab === 'board' && (
+      {/* Supabase-Warnung */}
+      {supabaseOk === false && (tab === 'board' || tab === 'canvas' || tab === 'moneymaker') && (
         <div className="notice notice-warn">
-          Supabase-Verbindung fehlgeschlagen - Board zeigt keine Daten.
+          Supabase-Verbindung fehlgeschlagen — Board zeigt keine Daten.
         </div>
       )}
 
+      {/* Tab-Inhalt */}
       <div className="tab-content">
         {tab === 'session' && <NaechsteSession data={sessionData} />}
-        {tab === 'board' && <Board tasks={filtered} onMove={moveTask} />}
+        {tab === 'canvas' && (
+          <CanvasBoard tasks={filtered} onTaskClick={handleTaskClick} />
+        )}
+        {tab === 'board' && (
+          <Board tasks={filtered} onMove={moveTask} onTaskClick={handleTaskClick} />
+        )}
         {tab === 'moneymaker' && <Portfolio portfolio={portfolioData} />}
         {tab === 'plans' && <PlanOverview plans={plansData} />}
+        {tab === 'team' && (
+          <TeamView session={session} userProfile={userProfile} />
+        )}
         {tab === 'research' && <DeepResearch ausgaben={ausgabenData} />}
       </div>
     </div>

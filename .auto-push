@@ -1,0 +1,9 @@
+Marker fuer hooks/auto-commit-push.sh (Owner-Freigabe 2026-08-11, Issue claude-config#230).
+
+Solange diese Datei im Repo-Wurzelverzeichnis liegt, sichert der globale Stop-Hook nach
+jeder Antwort die geaenderten Dateien: Commit immer, Push auf Feature-Branches hoechstens
+alle 15 Minuten. Auf main wird nie gepusht - dort bleibt es beim Commit.
+Untracked Files werden nie automatisch mitgenommen.
+
+Abschalten:    git rm .auto-push && git commit -m "chore: Auto-Push aus"
+Pause aendern: AUTO_PUSH_PAUSE=<Sekunden>
