@@ -22,10 +22,23 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   Zusätzlich im Kanban-Tab: Revenue-Badge auf einzelnen Aufgaben-Karten und Filter
   "Nur Money-Maker" (aus `planning.idea_scores.revenue_category`). Deckt Franks Lücke
   "welche Projekte sind Money-Maker, wie gestaffelt nach ICE" ab.
+- Umsatz-Einschätzung ist jetzt im Board selbst eintragbar: Task-Detail (Klick auf eine
+  Aufgabe, sowohl im Kanban- als auch im Canvas-Tab) hat einen neuen Block "Bringt das
+  Umsatz?" mit drei Buttons (Kein Umsatz / Indirekt / Direkt) + optionalem EUR-Feld.
+  Vorher gab es dafür keine UI - Umsatz-Info konnte nur direkt in Supabase gesetzt werden.
+- Bugfix: Klick auf eine Aufgaben-Karte im Kanban-Tab öffnete das Task-Detail-Modal nicht
+  (Board.jsx/Column.jsx gaben den `onTaskClick`-Handler aus App.jsx nie weiter, seit dem
+  Team-Plattform-Merge). Jetzt durchgereicht, Karten-Klick öffnet das Modal wie im Canvas-Tab.
 - DB-seitig (nicht Teil dieses Diffs, live in Supabase repariert): Der Trigger
   `planning.idea_scores_auto_fields()` berechnete `moscow_priority`/`revenue_score` nicht
   mehr korrekt (634 von 985 Zeilen falsch eingestuft, 983 von 985 mit `revenue_score = 0`).
   Trigger repariert, alle Bestandszeilen neu durchgerechnet.
+- DB-seitig (nicht Teil dieses Diffs, live in Supabase repariert): Die RLS-Policy
+  `idea_scores_auth_update` verlangte `owner_user_id = eigene User-ID`, aber keine der
+  1498 Zeilen hatte `owner_user_id` gesetzt - dadurch konnte kein eingeloggtes Team-Mitglied
+  irgendeine Aufgabe ändern (Status per Drag&Drop, Zuständigkeit, jetzt auch Umsatz).
+  Policy geöffnet für alle authentifizierten Nutzer, deckungsgleich mit der bestehenden
+  Lese-Policy (die App hat ohnehin kein Einzel-Besitz-Konzept im Frontend).
 
 ### Geändert
 

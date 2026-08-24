@@ -17,17 +17,24 @@ const REVENUE_COLORS = {
   INDIRECT_REVENUE: '#16a085',
 };
 
-export default function TaskCard({ task }) {
+export default function TaskCard({ task, onClick }) {
   const [expanded, setExpanded] = useState(false);
 
   function handleDragStart(e) {
     e.dataTransfer.setData('text/plain', task.id);
   }
 
+  function handleClick() {
+    // Wenn ein Klick-Handler von aussen kommt (Task-Detail-Modal), diesen nutzen -
+    // sonst wie bisher nur die Beschreibung lokal auf-/zuklappen.
+    if (onClick) onClick();
+    else setExpanded(!expanded);
+  }
+
   const overdue = task.deadline && new Date(task.deadline) < new Date();
 
   return (
-    <div className="task-card" draggable onDragStart={handleDragStart} onClick={() => setExpanded(!expanded)}>
+    <div className="task-card" draggable onDragStart={handleDragStart} onClick={handleClick}>
       <div className="task-top">
         <span className="prio-badge" style={{ backgroundColor: PRIO_COLORS[task.prio] || '#95a5a6' }}>
           {task.prio || '?'}

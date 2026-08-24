@@ -1205,6 +1205,62 @@ body {
   border-color: #2c3e50;
 }
 
+/* Umsatz-Einschätzung im Task-Detail */
+.task-detail-revenue {
+  margin-bottom: 1.2rem;
+  padding: 0.9rem;
+  background: #fafbfc;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+}
+
+.revenue-buttons {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0.5rem 0;
+  flex-wrap: wrap;
+}
+
+.revenue-option-btn {
+  padding: 0.35rem 0.9rem;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  background: white;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.revenue-option-btn:hover { background: #ecf0f1; }
+.revenue-option-active {
+  background: #27ae60;
+  color: white;
+  border-color: #27ae60;
+}
+
+.revenue-eur-input {
+  margin: 0.6rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.revenue-eur-input label {
+  font-size: 0.78rem;
+  color: #666;
+}
+.revenue-eur-input input {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  max-width: 200px;
+}
+
+.revenue-save-btn {
+  margin-top: 0.4rem;
+  font-size: 0.82rem;
+  padding: 0.4rem 1rem;
+}
+
 .task-detail-description {
   margin-bottom: 1.5rem;
 }

@@ -7,7 +7,7 @@ const COLUMNS = [
   { id: 'erledigt', label: 'Erledigt', color: '#27ae60' },
 ];
 
-export default function Board({ tasks, onMove }) {
+export default function Board({ tasks, onMove, onTaskClick }) {
   return (
     <div className="board">
       {COLUMNS.map(col => (
@@ -16,6 +16,7 @@ export default function Board({ tasks, onMove }) {
           column={col}
           tasks={tasks.filter(t => t.status === col.id)}
           onMove={onMove}
+          onTaskClick={onTaskClick}
         />
       ))}
     </div>

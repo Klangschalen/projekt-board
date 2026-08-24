@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { loadComments, addComment, deleteComment } from '../data/supabase.js';
+import { loadComments, addComment, deleteComment, updateTaskRevenue } from '../data/supabase.js';
 
 const PRIO_COLORS = {
   MUST: '#e74c3c',
@@ -7,6 +7,12 @@ const PRIO_COLORS = {
   COULD: '#3498db',
   WONT: '#95a5a6',
 };
+
+const REVENUE_OPTIONS = [
+  { value: 'NO_REVENUE', label: 'Kein Umsatz', hint: 'Interne Aufgabe, kein direkter Geld-Effekt' },
+  { value: 'INDIRECT_REVENUE', label: 'Indirekt', hint: 'Hilft dabei, Umsatz zu machen (z.B. Marketing, Vorbereitung)' },
+  { value: 'DIRECT_REVENUE', label: 'Direkt', hint: 'Bringt unmittelbar Umsatz (z.B. neues Produkt, Shop-Änderung)' },
+];
 
 const STATUS_LABELS = {
   IDEE: 'Idee', EVALUATING: 'In Bewertung', EVALUATED: 'Bewertet',
@@ -53,14 +59,38 @@ function CommentItem({ comment, currentUserId, onDelete }) {
   );
 }
 
-export default function TaskDetail({ task, session, userProfile, onClose, onStatusChange }) {
+export default function TaskDetail({ task, session, userProfile, onClose, onStatusChange, onRevenueChange }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [revenueCategory, setRevenueCategory] = useState(task?.revenueCategory || 'NO_REVENUE');
+  const [revenueEur, setRevenueEur] = useState(task?.estimatedRevenueImpact ?? '');
+  const [savingRevenue, setSavingRevenue] = useState(false);
+  const [revenueSaved, setRevenueSaved] = useState(false);
   const textareaRef = useRef(null);
   const token = session?.access_token;
+
+  useEffect(() => {
+    setRevenueCategory(task?.revenueCategory || 'NO_REVENUE');
+    setRevenueEur(task?.estimatedRevenueImpact ?? '');
+    setRevenueSaved(false);
+  }, [task?.id]);
+
+  async function handleSaveRevenue() {
+    if (!token) return;
+    setSavingRevenue(true);
+    const eurValue = revenueEur === '' ? null : Number(revenueEur);
+    const ok = await updateTaskRevenue(task.id, revenueCategory, eurValue, token);
+    if (ok) {
+      setRevenueSaved(true);
+      onRevenueChange?.(task.id, revenueCategory, eurValue);
+    } else {
+      setError('Umsatz-Einschätzung konnte nicht gespeichert werden.');
+    }
+    setSavingRevenue(false);
+  }
 
   useEffect(() => {
     if (task && token) {
@@ -163,6 +193,47 @@ export default function TaskDetail({ task, session, userProfile, onClose, onStat
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Umsatz-Einschätzung */}
+        {token && (
+          <div className="task-detail-revenue">
+            <span className="meta-label">Bringt das Umsatz?</span>
+            <div className="revenue-buttons">
+              {REVENUE_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`revenue-option-btn ${revenueCategory === opt.value ? 'revenue-option-active' : ''}`}
+                  title={opt.hint}
+                  onClick={() => { setRevenueCategory(opt.value); setRevenueSaved(false); }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {revenueCategory !== 'NO_REVENUE' && (
+              <div className="revenue-eur-input">
+                <label htmlFor="revenue-eur">Geschätzter Umsatz in EUR (optional)</label>
+                <input
+                  id="revenue-eur"
+                  type="number"
+                  min="0"
+                  placeholder="z.B. 5000"
+                  value={revenueEur}
+                  onChange={e => { setRevenueEur(e.target.value); setRevenueSaved(false); }}
+                />
+              </div>
+            )}
+            <button
+              type="button"
+              className="btn-primary revenue-save-btn"
+              onClick={handleSaveRevenue}
+              disabled={savingRevenue}
+            >
+              {savingRevenue ? 'Wird gespeichert...' : revenueSaved ? 'Gespeichert ✓' : 'Umsatz-Einschätzung speichern'}
+            </button>
           </div>
         )}
 
