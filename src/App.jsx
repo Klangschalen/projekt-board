@@ -236,7 +236,7 @@ export default function App() {
         {tab === 'board' && (
           <Board tasks={filtered} onMove={moveTask} onTaskClick={handleTaskClick} />
         )}
-        {tab === 'moneymaker' && <Portfolio portfolio={portfolioData} />}
+        {tab === 'moneymaker' && <Portfolio portfolio={portfolioData} tasks={tasks} onTaskClick={handleTaskClick} />}
         {tab === 'plans' && <PlanOverview plans={plansData} />}
         {tab === 'team' && (
           <TeamView session={session} userProfile={userProfile} />

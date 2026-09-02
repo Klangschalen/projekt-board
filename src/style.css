@@ -813,6 +813,61 @@ body {
 .revenue-indirect { background: #f39c12; }
 .revenue-none { background: #dcdfe3; }
 
+.portfolio-hint {
+  font-size: 0.8rem;
+  color: #888;
+  margin: -0.5rem 0 1rem 0;
+}
+
+.portfolio-total-hint {
+  color: #999;
+  font-weight: 400;
+  font-size: 0.78rem;
+}
+
+.portfolio-expand-arrow {
+  display: inline-block;
+  margin-right: 0.4rem;
+  color: #999;
+  transition: transform 0.15s;
+}
+.portfolio-expand-open { transform: rotate(90deg); }
+
+.portfolio-row-expanded td {
+  background: #f9fafb;
+  padding: 0.75rem 1.5rem;
+}
+
+.portfolio-open-tasks {
+  list-style: none;
+}
+.portfolio-open-tasks li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.portfolio-open-tasks li:last-child { border-bottom: none; }
+.portfolio-open-tasks li:hover { color: #2c3e50; }
+.portfolio-open-task-title { flex: 1; }
+
+.portfolio-done-section {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: #888;
+}
+.portfolio-done-section summary {
+  cursor: pointer;
+  padding: 0.5rem 0;
+}
+.portfolio-done-list {
+  margin: 0.5rem 0 0 1.5rem;
+  color: #666;
+}
+
 /* Empty State */
 .empty-state {
   color: #999;
