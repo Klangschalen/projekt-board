@@ -40,6 +40,15 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   Policy geöffnet für alle authentifizierten Nutzer, deckungsgleich mit der bestehenden
   Lese-Policy (die App hat ohnehin kein Einzel-Besitz-Konzept im Frontend).
 
+- Money-Maker-Tab zeigt jetzt "X offen (von Y gesamt)" statt nur der Gesamtzahl je Projekt,
+  weil erledigte (FERTIG) und verworfene (VERWORFEN) Aufgaben bisher unverändert mitzählten
+  und die Rangliste verzerrten. Projekte ohne offene Aufgaben stehen nicht mehr in der
+  aktiven Liste, sondern in einem eigenen einklappbaren Bereich "komplett erledigt" darunter.
+- Projekt-Zeile im Money-Maker-Tab ist jetzt anklickbar und zeigt die konkreten offenen
+  Aufgaben darunter (Titel, Priorität, Zuständigkeit) statt nur der Summenzahl - vorher war
+  unklar, was an einem Projekt überhaupt noch zu tun ist. Klick auf eine Aufgabe öffnet
+  das gewohnte Task-Detail-Modal.
+
 ### Geändert
 
 - chore(workflows): pin gitleaks reusable workflow to 3797874aff12223bcf9f588a5a61a5ee8014943c (#7)
