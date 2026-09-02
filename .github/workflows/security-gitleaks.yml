@@ -18,4 +18,4 @@ jobs:
     uses: Klangschalen/.github/.github/workflows/gitleaks-scan.yml@19a4b8326699eb9803a8a17c3842302221749293
     secrets: inherit
     with:
-      fail-on-detection: false
+      fail-on-detection: true
